@@ -40,6 +40,24 @@ public class BurgerJointService {
 	
 	@Value("${imageRecognitionURL}")
 	private String imageRecognitionUrl;
+	
+	@Value("${px2}")
+	private String px2;
+	
+	@Value("${pxff_cc}")
+	private String pxff_cc;
+	
+	@Value("${pxvid}")
+	private String pxvid;
+	
+	@Value("${bbhive}")
+	private String bbhive;
+	
+	@Value("${lc}")
+	private String lc;
+	
+	@Value("${xsessionid}")
+	private String xsessionid;
 
 	public List<BurgerJointDTO> getBurgerJoints() {
 		FoursquareExplore result = template.getForObject(url, FoursquareExplore.class);
@@ -52,7 +70,8 @@ public class BurgerJointService {
 	public String getLatestBurgerPictureOf(String venueId) {
 		String photosUrl = venueUrl+venueId+"/photos";
 		HttpHeaders header = new HttpHeaders();
-		header.add("Cookie", "bbhive=5UCQOXQ3QO0PVCXZNH51RJR53SV30W::1663777443; _px2=eyJ1IjoiZGQ2YTRlZjAtZmMyNi0xMWVhLWFkNGQtNjc3ZDRjMWQwNzQxIiwidiI6ImRjY2FlMjk0LWZjMjYtMTFlYS04Y2ZlLTAyNDJhYzEyMDAwYSIsInQiOjE2MDA3MDU3NDM2OTQsImgiOiJlMTIyMWYwZjNkZjA0YWMzOWU1NWE3YzI4MjgyODEzNjE5YTJlNDZiMDEzMDdjMjU3YmY3YmIxMjFmMjkzM2RkIn0=; _pxff_cc=U2FtZVNpdGU9TGF4Ow==; _pxvid=dccae294-fc26-11ea-8cfe-0242ac12000a; XSESSIONID=okbk1778080~8si418oj0y3glje5mwrx0jvr; lc=%7B%22lat%22%3A58.36011831704449%2C%22lng%22%3A26.676002299157688%2C%22loc%22%3A%22Tartu%22%2C%22cc%22%3A%22EE%22%2C%22longGeoId%22%3A%22-543225100%22%7D");
+		String cookie = String.format("bbhive=%s; _px2=%s; _pxff_cc=%s; _pxvid=%s; XSESSIONID=%s; lc=%s;", bbhive, px2, pxff_cc, pxvid, xsessionid, lc);
+		header.add("Cookie", cookie);
 		ResponseEntity<String> re = template.exchange(photosUrl,HttpMethod.GET,new HttpEntity<String>(header),String.class);
 		String response = re.getBody();
 		Pattern p = Pattern.compile("<div class=\"date.*?\">(.*?)</div></div></div><img (.*?)></span>");
