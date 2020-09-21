@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Burger Joints in Tartu</title>
+    <style>
+        table, th, td {
+          border: 1px solid black;
+          border-collapse: collapse;
+        }
+        th, td {
+          padding: 5px;
+          text-align: center;
+        }
+    </style>
+</head>
+<body>
+<table style="font-family: Arial, Helvetica, sans-serif;">
+    <tr>
+        <th>Burger Joints</th>
+        <th>Latest Burger Picture</th>
+    </tr>
+    <tr th:each="joint: ${joints}">
+        <td>
+            <p th:text="${joint.name}"></p>
+            <p th:text="${joint.address}"></p>
+        </td>
+        <td th:switch="${joint.imageUrl}">
+        	<img th:case="''" th:src="@{defaultburger.jpg}" width="400" height="400" title="No burger picture found for this place">
+        	<img th:case="*" th:src="${joint.imageUrl}" width="400" height="400">
+        </td>
+    </tr>
+</table>
+</body>
+</html>
