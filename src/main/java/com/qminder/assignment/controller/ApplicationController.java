@@ -13,7 +13,7 @@ public class ApplicationController {
 	private BurgerJointService service;
 	
 	@GetMapping("/")
-    public String index(Model model) {
+    public String index(Model model) throws Exception {
 		long before = System.currentTimeMillis();
 		model.addAttribute("joints", service.getBurgerJointsForDisplay());
 		//model.addAttribute("joints", List.of(new BurgerJoint("A","B","")));

@@ -33,7 +33,7 @@ class BurgerJointsInTartuApplicationTests {
 		list.forEach(b -> System.out.println(b.toString()));
 	}*/
 	
-	@Test
+	/*@Test
 	void getAllPictures() throws Exception {
 		String test = "563c879fcd102b8e3528f039";
 		String first = service.getLatestBurgerPictureOf(test);
@@ -64,7 +64,7 @@ class BurgerJointsInTartuApplicationTests {
 		assertNotNull(urlWithBurger);
 		assertFalse(urlWithBurger.isEmpty());
 		System.out.println(urlWithBurger);
-	}
+	}*/
 	
 	public static BurgerPicture from(String posted, String link) {
 		BurgerPicture pic = new BurgerPicture();

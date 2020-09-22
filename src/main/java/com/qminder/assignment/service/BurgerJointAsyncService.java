@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -21,21 +20,17 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import com.qminder.assignment.dto.BurgerJointDTO;
-import com.qminder.assignment.dto.FoursquareExplore;
 import com.qminder.assignment.dto.ImageRecognitionRequest;
 import com.qminder.assignment.dto.ImageRecognitionResponse;
 import com.qminder.assignment.model.BurgerJoint;
 import com.qminder.assignment.model.BurgerPicture;
 
 @Service
-public class BurgerJointService {
+public class BurgerJointAsyncService {
 	
-	private static final Logger logger = LoggerFactory.getLogger(BurgerJointService.class);
+	private static final Logger logger = LoggerFactory.getLogger(BurgerJointAsyncService.class);
 	
 	private RestTemplate template = new RestTemplate();
-	
-	private List<BurgerJoint> burgerJoints = null;
 	
 	@Value("${exploreURL}")
 	private String url;
@@ -64,19 +59,8 @@ public class BurgerJointService {
 	@Value("${xsessionid}")
 	private String xsessionid;
 	
-	@Autowired
-	private BurgerJointAsyncService asyncService;
-
-	public List<BurgerJointDTO> getBurgerJoints() {
-		FoursquareExplore result = template.getForObject(url, FoursquareExplore.class);
-		List<BurgerJointDTO> joints = result.getResponse().
-											getGroups().get(0).
-											getItems().stream().map(v -> v.getVenue()).collect(Collectors.toList());
-		return joints;
-	}
-	
-	@Async("asyncExec")
-	public CompletableFuture<String> getLatestBurgerPictureOf(String venueId) {
+	@Async
+	public CompletableFuture<BurgerJoint> getBurgerJoint(String venueId, String name, String address) {
 		logger.info("[+] Looking for photo...");
 		String photosUrl = venueUrl+venueId+"/photos";
 		HttpHeaders header = new HttpHeaders();
@@ -100,39 +84,15 @@ public class BurgerJointService {
 		logger.info("[+] Photos URL: "+photosUrl);
 		ImageRecognitionRequest request = new ImageRecognitionRequest();
 		request.setUrls(urls);
-		return CompletableFuture.completedFuture(getUrlWithBurger(request));
-	}
-	
-	public String getUrlWithBurger(ImageRecognitionRequest request) {
+		
 		try {
-			ImageRecognitionResponse response = template.postForObject(imageRecognitionUrl, request, ImageRecognitionResponse.class);
-			return response.getUrlWithBurger();
+			ImageRecognitionResponse imageResponse = template.postForObject(imageRecognitionUrl, request, ImageRecognitionResponse.class);
+			CompletableFuture.completedFuture(new BurgerJoint(name, address, imageResponse.getUrlWithBurger()));
 		}catch(Exception e) {
 			logger.info("[+] No photo for this place");
-			return "";
+			return CompletableFuture.completedFuture(new BurgerJoint(name, address, ""));
 		}
-	}
-	
-	public List<BurgerJoint> getBurgerJointsForDisplay() throws Exception {
-		if(this.burgerJoints == null || this.burgerJoints.isEmpty()) setBurgerJointsForDisplay();
-		return this.burgerJoints;
-	}
-	
-	public void setBurgerJointsForDisplay() throws Exception {
-		List<BurgerJointDTO> joints = getBurgerJoints();
-		List<CompletableFuture<BurgerJoint>> completableList = new ArrayList<CompletableFuture<BurgerJoint>>();
-		
-		for(BurgerJointDTO bj : joints) {
-			completableList.add(asyncService.getBurgerJoint(bj.getId(),bj.getName(),bj.getLocation().getAddress()));
-		}
-		
-		CompletableFuture.allOf((CompletableFuture[]) completableList.toArray(new CompletableFuture[completableList.size()])).join();
-		List<BurgerJoint> list = new ArrayList<BurgerJoint>();
-		for(CompletableFuture<BurgerJoint> c : completableList) {
-			list.add(c.get());
-		}
-		list.sort(null);
-		this.burgerJoints = list;
+		return CompletableFuture.completedFuture(new BurgerJoint(name, address, ""));
 	}
 	
 	public static BurgerPicture from(String posted, String link) {
@@ -156,5 +116,5 @@ public class BurgerJointService {
 		pic.setLink(link.substring(fq+1, sq));
 		return pic;
 	}
-	
+
 }
