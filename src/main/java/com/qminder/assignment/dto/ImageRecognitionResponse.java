@@ -6,6 +6,7 @@ public class ImageRecognitionResponse {
 		this.urlWithBurger = urlWithBurger;
 	}
 	public String getUrlWithBurger() {
+		System.out.println("[+] Photo url: "+urlWithBurger);
 		return urlWithBurger;
 	}
 }

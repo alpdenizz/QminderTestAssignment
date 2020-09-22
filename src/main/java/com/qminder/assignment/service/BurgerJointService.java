@@ -13,7 +13,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -72,6 +71,8 @@ public class BurgerJointService {
 		HttpHeaders header = new HttpHeaders();
 		String cookie = String.format("bbhive=%s; _px2=%s; _pxff_cc=%s; _pxvid=%s; XSESSIONID=%s; lc=%s;", bbhive, px2, pxff_cc, pxvid, xsessionid, lc);
 		header.add("Cookie", cookie);
+		header.add("Accept", "text/html");
+		header.add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:80.0) Gecko/20100101 Firefox/80.0");
 		ResponseEntity<String> re = template.exchange(photosUrl,HttpMethod.GET,new HttpEntity<String>(header),String.class);
 		String response = re.getBody();
 		Pattern p = Pattern.compile("<div class=\"date.*?\">(.*?)</div></div></div><img (.*?)></span>");
@@ -84,6 +85,7 @@ public class BurgerJointService {
 			list.add(from(posted,link));
 		}
 		List<String> urls = list.stream().sorted().map(bp -> bp.getLink()).collect(Collectors.toList());
+		System.out.println("[+] Photos URL: "+photosUrl);
 		ImageRecognitionRequest request = new ImageRecognitionRequest();
 		request.setUrls(urls);
 		return getUrlWithBurger(request);
@@ -91,10 +93,12 @@ public class BurgerJointService {
 	
 	public String getUrlWithBurger(ImageRecognitionRequest request) {
 		try {
+			Thread.sleep(3000);
 			ImageRecognitionResponse response = template.postForObject(imageRecognitionUrl, request, ImageRecognitionResponse.class);
 			return response.getUrlWithBurger();
 		}catch(Exception e) {
-				return "";
+			System.out.println("[+] No photo for this place");
+			return "";
 		}
 	}
 	
@@ -103,7 +107,6 @@ public class BurgerJointService {
 		return this.burgerJoints;
 	}
 	
-	@Scheduled(fixedRate = 1000*60*60)
 	public void setBurgerJointsForDisplay() {
 		List<BurgerJointDTO> joints = getBurgerJoints();
 		this.burgerJoints = joints.stream().map(bj -> new BurgerJoint(bj.getName(),bj.getLocation().getAddress(),getLatestBurgerPictureOf(bj.getId())))
