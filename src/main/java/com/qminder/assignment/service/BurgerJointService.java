@@ -9,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -74,11 +73,7 @@ public class BurgerJointService {
 		return this.burgerJoints;
 	}
 	
-	/**
-	 * After 1 hour the application started, this retries burger joints with pictures to capture the latest ones.
-	 * Then retries this procedures with 1 hour interval.
-	 */
-	@Scheduled(initialDelay=3600000, fixedRate=3600000)
+	
 	public void setBurgerJointsForDisplay() throws Exception {
 		logger.info("[+] Setting burger joints for display...");
 		
