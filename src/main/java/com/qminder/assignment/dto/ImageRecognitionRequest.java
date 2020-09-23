@@ -2,6 +2,11 @@ package com.qminder.assignment.dto;
 
 import java.util.List;
 
+/**
+ * 
+ * Wrapper class to handle the request to Image Recognition API
+ *
+ */
 public class ImageRecognitionRequest {
 	
 	private List<String> urls;

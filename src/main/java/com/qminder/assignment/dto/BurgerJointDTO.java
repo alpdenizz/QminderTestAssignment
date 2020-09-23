@@ -1,5 +1,10 @@
 package com.qminder.assignment.dto;
 
+/**
+ * 
+ * Wrapper class to handle the response from Foursquare Explore API
+ *
+ */
 public class BurgerJointDTO {
 	private String id;
 	private String name;

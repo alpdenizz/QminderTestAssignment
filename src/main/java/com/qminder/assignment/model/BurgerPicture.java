@@ -2,6 +2,11 @@ package com.qminder.assignment.model;
 
 import java.time.LocalDate;
 
+/**
+ * Model class for a burger picture. <br>
+ * It includes: link and posted date.
+ *
+ */
 public class BurgerPicture implements Comparable<BurgerPicture>{
 	private String link;
 	private LocalDate posted;
@@ -17,6 +22,11 @@ public class BurgerPicture implements Comparable<BurgerPicture>{
 	public LocalDate getPosted() {
 		return posted;
 	}
+	
+	/**
+	 * This is implemented to sort the pictures where the first element is the most recent posted,
+	 * whereas the last element is the oldest picture.
+	 */
 	@Override
 	public int compareTo(BurgerPicture o) {
 		// TODO Auto-generated method stub

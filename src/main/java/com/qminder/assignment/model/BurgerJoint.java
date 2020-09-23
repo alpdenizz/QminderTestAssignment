@@ -1,5 +1,10 @@
 package com.qminder.assignment.model;
 
+/**
+ * Model class for a burger joint. <br>
+ * It includes: name, address and imageURL for the latest burger.
+ *
+ */
 public class BurgerJoint implements Comparable<BurgerJoint> {
 	
 	private String name;
@@ -32,7 +37,11 @@ public class BurgerJoint implements Comparable<BurgerJoint> {
 		this.name = name;
 		this.imageUrl = imageUrl;
 	}
-
+	
+	/**
+	 * This is implemented to show the joints with picture upper.
+	 * If no picture, then the ones with address to upper.
+	 */
 	@Override
 	public int compareTo(BurgerJoint o) {
 		// TODO Auto-generated method stub
@@ -43,6 +52,16 @@ public class BurgerJoint implements Comparable<BurgerJoint> {
 			return o.getAddress().compareTo(this.address);
 		}
 		return byUrl;
+	}
+	
+	@Override
+	public String toString() {
+		// TODO Auto-generated method stub
+		StringBuilder sb = new StringBuilder("BurgerJoint{");
+		sb.append("name: ").append(this.name).append(", ")
+		.append("address: ").append(this.address).append(", ")
+		.append("image: ").append(this.imageUrl).append("}");
+		return sb.toString();
 	}
 	
 	
