@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -26,8 +27,6 @@ public class BurgerJointService {
 	private RestTemplate template = new RestTemplate();
 	
 	private static final Logger logger = LoggerFactory.getLogger(BurgerJointService.class);
-	
-	private List<BurgerJoint> burgerJoints = null;
 	
 	@Value("${exploreURL}")
 	private String url;
@@ -68,13 +67,12 @@ public class BurgerJointService {
 		return joints;
 	}
 	
+	/**
+	 * Obtains burger joints with the latest picture. <br>
+	 * The result is cached so it will give the same result for 1 hour.
+	 */
+	@Cacheable("joints")
 	public List<BurgerJoint> getBurgerJointsForDisplay() throws Exception {
-		if(this.burgerJoints == null || this.burgerJoints.isEmpty()) setBurgerJointsForDisplay();
-		return this.burgerJoints;
-	}
-	
-	
-	public void setBurgerJointsForDisplay() throws Exception {
 		logger.info("[+] Setting burger joints for display...");
 		
 		List<BurgerJointDTO> joints = getBurgerJoints();
@@ -93,7 +91,7 @@ public class BurgerJointService {
 		}
 		
 		list.sort(null);
-		this.burgerJoints = list;
+		return list;
 	}
 	
 }

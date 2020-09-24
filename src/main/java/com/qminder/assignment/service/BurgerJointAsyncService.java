@@ -64,52 +64,52 @@ public class BurgerJointAsyncService {
 	
 	@Async
 	public CompletableFuture<BurgerJoint> getBurgerJoint(String venueId, String name, String address) {
-		String photosUrl = venueUrl+venueId+"/photos";
-		logger.info("[+] Looking for photo from {}", photosUrl);
-		
-		//setting realistic values to avoid FORBIDDEN 403 from Foursquare
-		HttpHeaders header = new HttpHeaders();
-		String cookie = String.format("bbhive=%s; _px2=%s; _pxff_cc=%s; _pxvid=%s; XSESSIONID=%s; lc=%s;", bbhive, px2, pxff_cc, pxvid, xsessionid, lc);
-		header.add("Cookie", cookie);
-		header.add("Accept", "text/html");
-		header.add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:80.0) Gecko/20100101 Firefox/80.0");
-		ResponseEntity<String> re = template.exchange(photosUrl,HttpMethod.GET,new HttpEntity<String>(header),String.class);
-		String response = re.getBody();
-		
-		int status = re.getStatusCodeValue();
-		logger.info("[+] HTTP status code: {}", status);
-		
-		//If not successful then use default image for this venue.
-		if(status != 200) {
-			logger.info("[+] Error code: {}, message: {}", status, HttpStatus.valueOf(status));
-			return CompletableFuture.completedFuture(new BurgerJoint(name, address, ""));
-		}
-		
-		logger.info("[+] HTML content retrieved...");
-		
-		
-		//When I analyzed the response, I discovered that each image has this pattern.
-		Pattern p = Pattern.compile("<div class=\"date.*?\">(.*?)</div></div></div><img (.*?)></span>");
-		Matcher m = p.matcher(response);
-		List<BurgerPicture> list = new ArrayList<BurgerPicture>();
-		
-		//Try to find it until the end of response.
-		while(m.find()) {
-			String posted = m.group(1);
-			String link = m.group(2);
-			list.add(from(posted,link));
-		}
-		
-		//Sort burger pictures by their date so that Image Recognition can get the latest burger picture.
-		List<String> urls = list.stream().sorted().map(bp -> bp.getLink()).collect(Collectors.toList());
-		ImageRecognitionRequest request = new ImageRecognitionRequest();
-		request.setUrls(urls);
-		
 		try {
+			String photosUrl = venueUrl+venueId+"/photos";
+			logger.info("[+] Looking for photo from {}", photosUrl);
+			
+			//setting realistic values to avoid FORBIDDEN 403 from Foursquare
+			HttpHeaders header = new HttpHeaders();
+			String cookie = String.format("bbhive=%s; _px2=%s; _pxff_cc=%s; _pxvid=%s; XSESSIONID=%s; lc=%s;", bbhive, px2, pxff_cc, pxvid, xsessionid, lc);
+			header.add("Cookie", cookie);
+			header.add("Accept", "text/html");
+			header.add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:80.0) Gecko/20100101 Firefox/80.0");
+			ResponseEntity<String> re = template.exchange(photosUrl,HttpMethod.GET,new HttpEntity<String>(header),String.class);
+			String response = re.getBody();
+			int status = re.getStatusCodeValue();
+			logger.info("[+] HTTP status code: {}", status);
+			
+			//If not successful then use default image for this venue.
+			if(status != 200) {
+				logger.info("[+] Error code: {}, message: {}", status, HttpStatus.valueOf(status));
+				return CompletableFuture.completedFuture(new BurgerJoint(name, address, ""));
+			}
+			
+			logger.info("[+] HTML content retrieved...");
+			
+			
+			//When I analyzed the response, I discovered that each image has this pattern.
+			Pattern p = Pattern.compile("<div class=\"date.*?\">(.*?)</div></div></div><img (.*?)></span>");
+			Matcher m = p.matcher(response);
+			List<BurgerPicture> list = new ArrayList<BurgerPicture>();
+			
+			//Try to find it until the end of response.
+			while(m.find()) {
+				String posted = m.group(1);
+				String link = m.group(2);
+				list.add(from(posted,link));
+			}
+			
+			//Sort burger pictures by their date so that Image Recognition can get the latest burger picture.
+			List<String> urls = list.stream().sorted().map(bp -> bp.getLink()).collect(Collectors.toList());
+			ImageRecognitionRequest request = new ImageRecognitionRequest();
+			request.setUrls(urls);
+			
 			//Run Image Recognition and return the latest picture URL
 			ImageRecognitionResponse imageResponse = template.postForObject(imageRecognitionUrl, request, ImageRecognitionResponse.class);
 			return CompletableFuture.completedFuture(new BurgerJoint(name, address, imageResponse.getUrlWithBurger()));
-		}catch(Exception e) {
+		
+		} catch(Exception e) {
 			logger.info("[+] No photo for this place");
 			return CompletableFuture.completedFuture(new BurgerJoint(name, address, ""));
 		}
